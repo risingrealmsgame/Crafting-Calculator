@@ -1,0 +1,1394 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Rising Realms – Crafting Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+    :root{
+      /* RisingRealms.org vibe (black + Spectral + red accent) */
+      --bg:#000000;
+      --card:#0b0b0b;
+      --text:#f9f9f9;
+      --muted:#cfcfcf;
+      --line:#444444;
+
+      --primary:#ff0000;
+      --primary2:#cc0000;
+
+      --good:#3bd16f;
+      --warn:#ffb020;
+      --bad:#ff4d4d;
+
+      --chip:#141414;
+      --shadow:0 10px 28px rgba(0,0,0,.55);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Spectral",serif;font-size:18.6667px;line-height:28px;color:var(--text);
+      background:var(--bg);}
+    header{position:sticky;top:0;z-index:10;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+    .wrap{max-width:1180px;margin:0 auto;padding:0 16px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:12px;}
+    .brand{display:flex;flex-direction:column;gap:2px;}
+    .brand h1{margin:0;font-size:16px;letter-spacing:.2px;}
+    .brand .sub{font-size:12px;color:var(--muted);}
+    .nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:12px;}
+    .nav .pill{padding:6px 10px;border:2px solid var(--line);border-radius:999px;background:var(--card);}
+    main{padding:18px 0 26px}
+    .grid{display:grid;gap:14px;grid-template-columns:1fr;}
+    @media (min-width:1020px){.grid{grid-template-columns:1.05fr .95fr;}}
+    .card{background:var(--card);border:2px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+    h2{margin:0 0 10px;font-size:14px;letter-spacing:.2px;}
+    label{display:block;margin:10px 0 6px;color:var(--muted);font-size:12px;}
+    input,select,textarea{width:100%;border-radius:12px;border:2px solid var(--line);background:#060606;padding:10px 10px;color:var(--text);outline:none;}
+    button{width:100%;border-radius:12px;border:2px solid var(--line);background:transparent;padding:10px 10px;color:var(--text);outline:none;}
+    input:focus,select:focus,textarea:focus{border-color:rgba(255,0,0,.55);box-shadow:0 0 0 3px rgba(255,0,0,.14);}
+    textarea{min-height:90px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .hr{height:1px;background:var(--line);margin:12px 0;}
+    .chips{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .chip{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:14px;border:2px solid var(--line);
+      background:var(--chip);font-size:12px;color:var(--muted);width:100%;box-sizing:border-box;}
+    .chip.stack{flex-direction:column;align-items:flex-start;gap:4px}
+    .chip.stack > div{width:100%}
+    .chip b{color:var(--text);font-weight:650}
+    .btn{cursor:pointer;background:transparent;border:1px solid var(--primary);color:var(--primary);font-weight:400;}
+    .btn:hover{background:rgba(255,0,0,.10);border-color:var(--primary2);color:var(--primary)}
+    .btn2{cursor:pointer;background:transparent;border:2px solid var(--line);color:var(--text);font-weight:400;}
+    .btn2:hover{background:rgba(255,255,255,.06)}
+    .ok{color:var(--good);font-weight:700}
+    .warn{color:var(--warn);font-weight:700}
+    .bad{color:var(--bad);font-weight:700}
+    .k{font-variant-numeric:tabular-nums;}
+    .nowrap{white-space:nowrap;}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{color:var(--muted);font-weight:650;text-align:left}
+    .tag{display:inline-block;padding:2px 8px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--muted);font-size:12px;margin-right:6px;margin-top:6px;}
+    .right{display:flex;justify-content:flex-end}
+    .stickytools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .stickytools input{min-width:220px}
+    details summary{cursor:pointer;color:var(--muted);font-weight:650;list-style:none;}
+    details summary::-webkit-details-marker{display:none}
+    .noteBox{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:10px;color:var(--muted);font-size:12px;}
+    .skillRow{display:grid;grid-template-columns:1.3fr .7fr .35fr;gap:10px;align-items:end;padding:10px;border:2px solid var(--line);
+      border-radius:12px;background:var(--card);margin-top:10px;}
+  
+/* Craft list as recipe bubbles */
+.craftCards{ display:flex; flex-direction:column; gap:10px; }
+.recipeBubble{
+  display:flex; justify-content:space-between; gap:12px;
+  padding:12px 12px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  border-radius:14px;
+}
+.recipeBubble .lines{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+.recipeBubble .title{ font-weight:800; line-height:1.15; }
+.recipeBubble .meta{ font-size:12px; opacity:.85; display:flex; flex-wrap:wrap; gap:8px; }
+.recipeBubble .meta .sep{ opacity:.55; }
+.recipeBubble .reqs{ font-size:12px; opacity:.8; }
+.recipeBubble .actions{ display:flex; align-items:flex-start; }
+.nav {
+  display: none !important;
+}
+
+</style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <div class="topbar">
+          <div class="brand">
+            <h1>Rising Realms – Crafting Calculator</h1>
+            <div class="sub">Add skills → choose recipes → CP is tracked per skill (no cross-spending).</div>
+          </div>
+          <div class="nav">
+            <span class="pill">CP/level: <b>5</b> (locked)</span>
+            <span class="pill">Rulebook recipes: <b id="recipeCount">0</b></span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap grid">
+        <section class="card">
+          <h2>1) Your crafting skills</h2>
+          <div class="noteBox">
+            Add each crafting skill you plan to use today and set its level.<br/>
+            CP per skill = <b>Level × 5</b>. Each recipe spends CP only from its own skill.
+          </div>
+
+          <div style="margin-top:10px" class="row">
+            <div>
+              <label for="labCP">Lab / Tools CP bonus (0–100)</label>
+              <select id="labCP">
+                <option value="0" selected>0 CP (no lab/tools)</option>
+                <option value="1">1 CP</option>
+                <option value="2">2 CP</option>
+                <option value="3">3 CP</option>
+                <option value="4">4 CP</option>
+                <option value="5">5 CP</option>
+                <option value="6">6 CP</option>
+                <option value="7">7 CP</option>
+                <option value="8">8 CP</option>
+                <option value="9">9 CP</option>
+                <option value="10">10 CP</option>
+                <option value="11">11 CP</option>
+                <option value="12">12 CP</option>
+                <option value="13">13 CP</option>
+                <option value="14">14 CP</option>
+                <option value="15">15 CP</option>
+                <option value="16">16 CP</option>
+                <option value="17">17 CP</option>
+                <option value="18">18 CP</option>
+                <option value="19">19 CP</option>
+                <option value="20">20 CP</option>
+                <option value="21">21 CP</option>
+                <option value="22">22 CP</option>
+                <option value="23">23 CP</option>
+                <option value="24">24 CP</option>
+                <option value="25">25 CP</option>
+                <option value="26">26 CP</option>
+                <option value="27">27 CP</option>
+                <option value="28">28 CP</option>
+                <option value="29">29 CP</option>
+                <option value="30">30 CP</option>
+                <option value="31">31 CP</option>
+                <option value="32">32 CP</option>
+                <option value="33">33 CP</option>
+                <option value="34">34 CP</option>
+                <option value="35">35 CP</option>
+                <option value="36">36 CP</option>
+                <option value="37">37 CP</option>
+                <option value="38">38 CP</option>
+                <option value="39">39 CP</option>
+                <option value="40">40 CP</option>
+                <option value="41">41 CP</option>
+                <option value="42">42 CP</option>
+                <option value="43">43 CP</option>
+                <option value="44">44 CP</option>
+                <option value="45">45 CP</option>
+                <option value="46">46 CP</option>
+                <option value="47">47 CP</option>
+                <option value="48">48 CP</option>
+                <option value="49">49 CP</option>
+                <option value="50">50 CP</option>
+                <option value="51">51 CP</option>
+                <option value="52">52 CP</option>
+                <option value="53">53 CP</option>
+                <option value="54">54 CP</option>
+                <option value="55">55 CP</option>
+                <option value="56">56 CP</option>
+                <option value="57">57 CP</option>
+                <option value="58">58 CP</option>
+                <option value="59">59 CP</option>
+                <option value="60">60 CP</option>
+                <option value="61">61 CP</option>
+                <option value="62">62 CP</option>
+                <option value="63">63 CP</option>
+                <option value="64">64 CP</option>
+                <option value="65">65 CP</option>
+                <option value="66">66 CP</option>
+                <option value="67">67 CP</option>
+                <option value="68">68 CP</option>
+                <option value="69">69 CP</option>
+                <option value="70">70 CP</option>
+                <option value="71">71 CP</option>
+                <option value="72">72 CP</option>
+                <option value="73">73 CP</option>
+                <option value="74">74 CP</option>
+                <option value="75">75 CP</option>
+                <option value="76">76 CP</option>
+                <option value="77">77 CP</option>
+                <option value="78">78 CP</option>
+                <option value="79">79 CP</option>
+                <option value="80">80 CP</option>
+                <option value="81">81 CP</option>
+                <option value="82">82 CP</option>
+                <option value="83">83 CP</option>
+                <option value="84">84 CP</option>
+                <option value="85">85 CP</option>
+                <option value="86">86 CP</option>
+                <option value="87">87 CP</option>
+                <option value="88">88 CP</option>
+                <option value="89">89 CP</option>
+                <option value="90">90 CP</option>
+                <option value="91">91 CP</option>
+                <option value="92">92 CP</option>
+                <option value="93">93 CP</option>
+                <option value="94">94 CP</option>
+                <option value="95">95 CP</option>
+                <option value="96">96 CP</option>
+                <option value="97">97 CP</option>
+                <option value="98">98 CP</option>
+                <option value="99">99 CP</option>
+                <option value="100">100 CP</option>
+              </select>
+              <div class="small muted" style="margin-top:6px">
+                Lab/tools CP acts like extra CP you can apply to crafting, but it <b>cannot be used with common materials</b>.
+              </div>
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <button class="btn" id="addSkillBtn">Add crafting skill</button>
+            </div>
+          </div>
+
+          <div id="skillRows"></div>
+
+          <div class="hr"></div>
+
+          <h2>2) Materials tracker</h2>
+          <div class="row3">
+            <div><label for="matAir">Common (white/air)</label><input id="matAir" type="number" min="0" value="0" /></div>
+            <div><label for="matEarth">Common (green/earth)</label><input id="matEarth" type="number" min="0" value="0" /></div>
+            <div><label for="matFire">Common (red/fire)</label><input id="matFire" type="number" min="0" value="0" /></div>
+          </div>
+
+          <div class="row3">
+            <div><label for="matWater">Common (blue/water)</label><input id="matWater" type="number" min="0" value="0" /></div>
+            <div><label for="matUncommon">Uncommon (orange)</label><input id="matUncommon" type="number" min="0" value="0" /></div>
+            <div><label for="matRare">Rare (purple)</label><input id="matRare" type="number" min="0" value="0" /></div>
+          </div>
+
+          <label for="otherComponents">Other components (freeform notes)</label>
+          <textarea id="otherComponents" placeholder="Example: 1 Master Shield; 1 circle cut Ruby; 100 CP worth of Gem Dust; 1 uncut Alabaster..."></textarea>
+
+          <div class="chips" id="materialsSummary"></div>
+        </section>
+
+        <section class="card">
+          <h2>3) Add recipes</h2>
+
+          <div class="stickytools">
+            <input id="searchBox" placeholder="Search recipes (name / skill / tier / reqs)..." />
+            <select id="skillFilter" style="max-width:260px"></select>
+            <select id="tierFilter" style="max-width:160px"></select>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label for="recipeSelect">Pick a recipe</label>
+              <select id="recipeSelect"></select>
+              <div class="small muted" style="margin-top:6px">Default filter is <b>My skills</b> (the skills you added on the left).</div>
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <button class="btn" id="addRecipeBtn">Add to crafting list</button>
+            </div>
+          </div>
+
+          <details style="margin-top:10px">
+            <summary>Show CP + time assumptions (click for info)</summary>
+            <div class="hr"></div>
+            <div class="noteBox">
+              <div><b>CP per level is locked at 5.</b></div>
+              <div style="margin-top:8px">
+                This tool treats <b>common elemental materials</b> as spendable CP toward crafts of the matching element for that skill.
+                If you mark <b>Lab = Yes</b>, it assumes you cannot also spend common materials in that session.
+              </div>
+              <div style="margin-top:8px">
+                Estimated crafting time uses: <b>30 seconds per CP you actually apply</b> (skill CP + spent common materials).
+              </div>
+            </div>
+          </details>
+
+          <div class="hr"></div>
+
+          <h2>Craft list</h2>
+          <div class="small muted">This is what you intend to make right now.</div>
+
+          <div style="margin-top:10px">
+            <div id="craftCards" class="craftCards"></div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h2>4) Results</h2>
+          <div class="chips" id="resultsPills"></div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <button class="btn2" id="clearBtn">Clear craft list</button>
+            <button class="btn" id="exportBtn">Export summary (copy)</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+const CP_PER_LEVEL = 5;
+
+const SKILLS = [
+  { name:"Alchemy", element:"Water" },
+  { name:"Culinary", element:"Fire" },
+  { name:"Dark Alchemy", element:"Air" },
+  { name:"Herbalism", element:"Earth" },
+  { name:"Lapidary", element:"Earth" },
+  { name:"Mage-Smithing", element:"Earth" },
+  { name:"Smithing", element:"Fire" },
+  { name:"Tinkering", element:"All" },
+  { name:"Trap Making", element:"Air" }
+];
+
+function skillMeta(skill){ return SKILLS.find(x=>x.name===skill); }
+
+const RECIPE_DB = [
+  {"id": "2da587d95a", "n": "Vitality I", "s": "Alchemy", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "8ac0dad450", "n": "Alchemical Air I", "s": "Alchemy", "t": 1, "cp": 4, "e": "Air", "u": 0, "ra": 0, "req": ""},
+  {"id": "22dfc16cc4", "n": "Alchemical Earth I", "s": "Alchemy", "t": 1, "cp": 4, "e": "Earth", "u": 0, "ra": 0, "req": ""},
+  {"id": "ec193ed8da", "n": "Alchemical Fire I", "s": "Alchemy", "t": 1, "cp": 4, "e": "Fire", "u": 0, "ra": 0, "req": ""},
+  {"id": "fbd2661406", "n": "Alchemical Water I", "s": "Alchemy", "t": 1, "cp": 4, "e": "Water", "u": 0, "ra": 0, "req": ""},
+  {"id": "de41fcfd8d", "n": "Cure Wounds I", "s": "Alchemy", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "84ccdd1f72", "n": "Jump Potion", "s": "Alchemy", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "233b61b9be", "n": "Reduce Disease I", "s": "Alchemy", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "34f5119ef0", "n": "Endurance", "s": "Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fabe86027c", "n": "Resist Fear", "s": "Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "aa2d12fa33", "n": "Sidestep", "s": "Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ce3d429fa2", "n": "Strength I", "s": "Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "96720c8498", "n": "Rage", "s": "Alchemy", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "719de94dad", "n": "Vitality II", "s": "Alchemy", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fe9f24b537", "n": "Resist Air", "s": "Alchemy", "t": 4, "cp": 16, "e": "Air", "u": 0, "ra": 0, "req": ""},
+  {"id": "90fd3832e5", "n": "Resist Earth", "s": "Alchemy", "t": 4, "cp": 16, "e": "Earth", "u": 0, "ra": 0, "req": ""},
+  {"id": "a91115557d", "n": "Resist Fire", "s": "Alchemy", "t": 4, "cp": 16, "e": "Fire", "u": 0, "ra": 0, "req": ""},
+  {"id": "e9e3cc0bbd", "n": "Resist Water", "s": "Alchemy", "t": 4, "cp": 16, "e": "Water", "u": 0, "ra": 0, "req": ""},
+  {"id": "2a4c161ef6", "n": "Cure Wounds II", "s": "Alchemy", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "53282dceb2", "n": "Reduce Disease II", "s": "Alchemy", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "959404ce18", "n": "Resist Pain", "s": "Alchemy", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "86d382e59c", "n": "Resist Poison", "s": "Alchemy", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "3aecce2269", "n": "Divination Shield", "s": "Alchemy", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e47dfc9225", "n": "Remove Charm", "s": "Alchemy", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e76f732f01", "n": "Rock Skin", "s": "Alchemy", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "72505919c1", "n": "Strength II", "s": "Alchemy", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "847ead827c", "n": "Alchemical Air II", "s": "Alchemy", "t": 6, "cp": 24, "e": "Air", "u": 0, "ra": 0, "req": ""},
+  {"id": "ded308f99b", "n": "Alchemical Earth II", "s": "Alchemy", "t": 6, "cp": 24, "e": "Earth", "u": 0, "ra": 0, "req": ""},
+  {"id": "abc2f73b51", "n": "Alchemical Fire II", "s": "Alchemy", "t": 6, "cp": 24, "e": "Fire", "u": 0, "ra": 0, "req": ""},
+  {"id": "1306a078e8", "n": "Alchemical Water II", "s": "Alchemy", "t": 6, "cp": 24, "e": "Water", "u": 0, "ra": 0, "req": ""},
+  {"id": "f9bcca254c", "n": "Cure Wounds II", "s": "Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "51531298a7", "n": "Remove Wound", "s": "Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "347370f04c", "n": "Resist Elements", "s": "Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d7c9d19b6f", "n": "Taunt", "s": "Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4ad7d80f0e", "n": "Dodge", "s": "Alchemy", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ca8f890ab6", "n": "Reduce Disease III", "s": "Alchemy", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "97bd277daa", "n": "Stun", "s": "Alchemy", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "28ff87824e", "n": "Cure Wounds III", "s": "Alchemy", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "665ef32827", "n": "Strength III", "s": "Alchemy", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "7891a19f04", "n": "Vitality III", "s": "Alchemy", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2cc491c474", "n": "Divination Shield III", "s": "Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "5bfec22e61", "n": "Oil Of Time", "s": "Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "c65aaab20b", "n": "Raise Dead", "s": "Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "e73771cd59", "n": "Stone Skin", "s": "Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "90a447f2f3", "n": "Alchemical Air III", "s": "Alchemy", "t": 10, "cp": 40, "e": "Air", "u": 1, "ra": 0, "req": ""},
+  {"id": "b709727e3b", "n": "Alchemical Earth III", "s": "Alchemy", "t": 10, "cp": 40, "e": "Earth", "u": 1, "ra": 0, "req": ""},
+  {"id": "1c5d29eaef", "n": "Alchemical Fire III", "s": "Alchemy", "t": 10, "cp": 40, "e": "Fire", "u": 1, "ra": 0, "req": ""},
+  {"id": "1c83e14692", "n": "Alchemical Water III", "s": "Alchemy", "t": 10, "cp": 40, "e": "Water", "u": 1, "ra": 0, "req": ""},
+  {"id": "a5f2286cbe", "n": "Basic Cauldron", "s": "Culinary", "t": 1, "cp": 100, "e": "", "u": 0, "ra": 1, "req": ""},
+  {"id": "42796ac4e5", "n": "Deep Draught", "s": "Culinary", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ec29b6e09d", "n": "Healer’s Broth", "s": "Culinary", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "945480e101", "n": "Vital-Gruel", "s": "Culinary", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "3010bcd3f7", "n": "Ironpot Porridge", "s": "Culinary", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "09bcdc68de", "n": "Renewing Broth", "s": "Culinary", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "1a464b1d70", "n": "Smelling Salt", "s": "Culinary", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d512ae8f22", "n": "Bravery Brew", "s": "Culinary", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "07f1949c41", "n": "Expert Cauldron", "s": "Culinary", "t": 3, "cp": 200, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "4feca1306f", "n": "Hot Pot", "s": "Culinary", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d336d14556", "n": "Mana Mead", "s": "Culinary", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "bf54617fd6", "n": "Flame Scone", "s": "Culinary", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "07a7bae5fd", "n": "River Stew", "s": "Culinary", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a3614c7164", "n": "Earthen Bowl", "s": "Culinary", "t": 4, "cp": 16, "e": "Earth", "u": 0, "ra": 0, "req": ""},
+  {"id": "9c3d6e9cbd", "n": "Buffed Bread", "s": "Culinary", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "bfe8adc67f", "n": "Halflings Herbs", "s": "Culinary", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d3bf9aa456", "n": "Rotbane Pottage", "s": "Culinary", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ead52e9061", "n": "Venom Ale", "s": "Culinary", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "14ec9d54a0", "n": "Beachside Chowder", "s": "Culinary", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "62562db9a1", "n": "Granite Pie", "s": "Culinary", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ad8f6d5626", "n": "Mana Bread", "s": "Culinary", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fde027ac8f", "n": "Master Cauldron", "s": "Culinary", "t": 6, "cp": 300, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "c6894cb9a9", "n": "Skybread", "s": "Culinary", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "728f5786fe", "n": "Lifebane Stew", "s": "Culinary", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "49f5f46676", "n": "Prismatic Pie", "s": "Culinary", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b3eb7726d8", "n": "Taunt Brew", "s": "Culinary", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "76a7e32286", "n": "Prismatic Cake", "s": "Culinary", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2cc50d8f7d", "n": "Seeker Cider", "s": "Culinary", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c0f6ff08a3", "n": "Wardbrew", "s": "Culinary", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2c9d9d7061", "n": "Giant’s Tart", "s": "Culinary", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "cbc94c1158", "n": "Mana Pie", "s": "Culinary", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "6cf38994d2", "n": "Ruin Hash", "s": "Culinary", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d19ef243c2", "n": "Scholar’s Stew", "s": "Culinary", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "72bfaabb3b", "n": "Epic Fruit Cake", "s": "Culinary", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "de827eea0a", "n": "Grand Master Cauldron", "s": "Culinary", "t": 10, "cp": 400, "e": "", "u": 0, "ra": 4, "req": ""},
+  {"id": "e76ec430a5", "n": "Amplifier Poison II", "s": "Dark Alchemy", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a4c1281e68", "n": "Poison I", "s": "Dark Alchemy", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "8359a108da", "n": "Slick Poison", "s": "Dark Alchemy", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e2e89f0d51", "n": "Anti-Lock Acid I", "s": "Dark Alchemy", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "43316257be", "n": "Disease II", "s": "Dark Alchemy", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "9e8d578c41", "n": "Ignore Poison", "s": "Dark Alchemy", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "92a54d8cc1", "n": "Trap Sense Poison", "s": "Dark Alchemy", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "406da23a48", "n": "Amplifier Poison III", "s": "Dark Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "109b6426d7", "n": "Disease III", "s": "Dark Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "788fe84b80", "n": "Oil Of Poison Thickening I", "s": "Dark Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "572b830a77", "n": "Poison II", "s": "Dark Alchemy", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "abe28d2da7", "n": "Enshroud Life Poison I", "s": "Dark Alchemy", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "f3aadc2abf", "n": "Haze Poison", "s": "Dark Alchemy", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5aef90e3fa", "n": "Pacify Poison", "s": "Dark Alchemy", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "cce6b70fdc", "n": "Anti-Lock Acid II", "s": "Dark Alchemy", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4fdc8cdad2", "n": "Sleep Poison", "s": "Dark Alchemy", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d7a9a17493", "n": "Weakness Poison", "s": "Dark Alchemy", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c59d49812a", "n": "Charm Befriend Poison", "s": "Dark Alchemy", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "846de4166c", "n": "Oil Of Poison Thickening II", "s": "Dark Alchemy", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fe3f24a141", "n": "Poison III", "s": "Dark Alchemy", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "659208fab2", "n": "<Race> Death Poison", "s": "Dark Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2f750de192", "n": "Amplifier Poison IV", "s": "Dark Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fc16fa5635", "n": "Disease VII", "s": "Dark Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "24e6ac8dd4", "n": "Silence Poison", "s": "Dark Alchemy", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "553d8f66a6", "n": "Eviscerate Poison", "s": "Dark Alchemy", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ff95e073fd", "n": "Feign Death Poison", "s": "Dark Alchemy", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "55083f5b92", "n": "Paralyze Poison", "s": "Dark Alchemy", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "7b259f0ad6", "n": "Anti-Lock Acid IV", "s": "Dark Alchemy", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a4766d63b8", "n": "Charm Enslave Poison", "s": "Dark Alchemy", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "1914e4cbae", "n": "Destruction Poison", "s": "Dark Alchemy", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4bc7fa2559", "n": "Gaseous Form Poison", "s": "Dark Alchemy", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fcc7fcfb34", "n": "<Race> Reaver Poison", "s": "Dark Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "a677249dd2", "n": "Amplifier Poison V", "s": "Dark Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "a7bbe6d52d", "n": "Death Poison", "s": "Dark Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "8c688c96e8", "n": "Oil Of Poison Thickening III", "s": "Dark Alchemy", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "44f170f8c6", "n": "Basic Pouch", "s": "Herbalism", "t": 1, "cp": 100, "e": "", "u": 0, "ra": 1, "req": ""},
+  {"id": "304c4e5230", "n": "Cure I", "s": "Herbalism", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "9fe981b4ea", "n": "Heal I", "s": "Herbalism", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4863a35335", "n": "Purifying I", "s": "Herbalism", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "3e8d901a04", "n": "Heal II", "s": "Herbalism", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "f5d9634c35", "n": "Restore Life I", "s": "Herbalism", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5285f09ea1", "n": "Restore Strength I", "s": "Herbalism", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b5d9003e46", "n": "Expert Pouch", "s": "Herbalism", "t": 3, "cp": 200, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "5a02377d48", "n": "Focus I", "s": "Herbalism", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "f2e70ec84d", "n": "Heal III", "s": "Herbalism", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "6b4b8a1984", "n": "Mana Restore I", "s": "Herbalism", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "dd8836108c", "n": "Purifying II", "s": "Herbalism", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4e6b253bc9", "n": "Cure II", "s": "Herbalism", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b0be9ae55f", "n": "Heal IV", "s": "Herbalism", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b8b21b82cb", "n": "Reduce <Element> Casting I", "s": "Herbalism", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "bb9e368586", "n": "Restore Bleed", "s": "Herbalism", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "25327fe664", "n": "Restore Skill I", "s": "Herbalism", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c88940f320", "n": "Heal V", "s": "Herbalism", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e3aedda483", "n": "Planar Asylum <Elemental>", "s": "Herbalism", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "98f27bb9ec", "n": "Plenty", "s": "Herbalism", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "012427c403", "n": "Purifying III", "s": "Herbalism", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "704bdecf4f", "n": "Heal VI", "s": "Herbalism", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c6e84470d9", "n": "Mana Restore II", "s": "Herbalism", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "06edae36f8", "n": "Master Pouch", "s": "Herbalism", "t": 6, "cp": 300, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "8fc696a5c5", "n": "Restore Life II", "s": "Herbalism", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "7b8440afe1", "n": "Restore Strength II", "s": "Herbalism", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "971c9ba6af", "n": "Heal VII", "s": "Herbalism", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4ea539ffa8", "n": "Purifying IV", "s": "Herbalism", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "868a74d7ea", "n": "Reduce <Element> Casting II", "s": "Herbalism", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "1a2dad3844", "n": "Restore Skill II", "s": "Herbalism", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "77b486e8a4", "n": "Cure III", "s": "Herbalism", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "cab80337c0", "n": "Heal VIII", "s": "Herbalism", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "0d8fda1a5d", "n": "Reduce Casting I", "s": "Herbalism", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d8c7d0bd33", "n": "Focus II", "s": "Herbalism", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "0308dcfab9", "n": "Heal IX", "s": "Herbalism", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "de98fb9916", "n": "Mana Restore III", "s": "Herbalism", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2e9443b8dd", "n": "Planar Asylum <Any>", "s": "Herbalism", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "6a7ad7a99c", "n": "Grand Master Pouch", "s": "Herbalism", "t": 10, "cp": 400, "e": "", "u": 0, "ra": 4, "req": ""},
+  {"id": "d69e062702", "n": "Heal X", "s": "Herbalism", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "8cc5cad3ec", "n": "Protection", "s": "Herbalism", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "ae50aa0cdc", "n": "Purifying V", "s": "Herbalism", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "9a64e9183a", "n": "Restore Life III", "s": "Herbalism", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "9fbd520f87", "n": "Restore Skill III", "s": "Herbalism", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "6da9c12d55", "n": "Restore Strength III", "s": "Herbalism", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "a1da93076a", "n": "Rage Stone I", "s": "Lapidary", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d286ade981", "n": "Tracking Stone I", "s": "Lapidary", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c9a88d5d33", "n": "Bard Stone I", "s": "Lapidary", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "7a01dec58f", "n": "Bravery Stone I", "s": "Lapidary", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a46316de51", "n": "Octagon Mana Stone", "s": "Lapidary", "t": 2, "cp": 4, "e": "", "u": 0, "ra": 0, "req": "/Olszbit value of the octagon cut gem"},
+  {"id": "3fa3a116ff", "n": "Scrying Stone I", "s": "Lapidary", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5e23c23643", "n": "Rage Stone II", "s": "Lapidary", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2f3d428453", "n": "Rogues Stone I", "s": "Lapidary", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ce9655dcc9", "n": "Tracking Stone II", "s": "Lapidary", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a476287533", "n": "Bravery Stone II", "s": "Lapidary", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "f08cebd1c6", "n": "Scrying Stone II", "s": "Lapidary", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d564616404", "n": "Shrouding Stone I", "s": "Lapidary", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "9765777980", "n": "Teardrop Mana Stone", "s": "Lapidary", "t": 4, "cp": 4, "e": "", "u": 0, "ra": 0, "req": "/Olszbit value of the teardrop cut gem"},
+  {"id": "dadeaf4d9c", "n": "Bard Stone II", "s": "Lapidary", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4a90090b42", "n": "Cut Uncommon Material", "s": "Lapidary", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": "(follows all the normal crafting rules)"},
+  {"id": "1029ec2fe5", "n": "Rogues Stone II", "s": "Lapidary", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "482149cdd6", "n": "Circle Mana Stone", "s": "Lapidary", "t": 6, "cp": 4, "e": "", "u": 0, "ra": 0, "req": "/Olszbit value of the circle cut gem"},
+  {"id": "309de26ef0", "n": "Scrying Stone III", "s": "Lapidary", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b8107077ee", "n": "Shrouding Stone II", "s": "Lapidary", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c0b2bce52b", "n": "Courage Stone", "s": "Lapidary", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5d8234992c", "n": "Rage Stone III", "s": "Lapidary", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4c3d1500b6", "n": "Rogues Stone III", "s": "Lapidary", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "6af274683d", "n": "Hekastone I", "s": "Lapidary", "t": 8, "cp": 4, "e": "", "u": 0, "ra": 0, "req": "/Mana in the stone"},
+  {"id": "d164f89483", "n": "Tracking Stone III", "s": "Lapidary", "t": 8, "cp": 100, "e": "", "u": 0, "ra": 1, "req": ""},
+  {"id": "f996cfe91a", "n": "Shrouding Stone III", "s": "Lapidary", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "1ddf01d547", "n": "Bard Stone III", "s": "Lapidary", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "f2a16b4e6f", "n": "Cut Rare Material", "s": "Lapidary", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "939c9720ce", "n": "Air Ring", "s": "Lapidary", "t": 10, "cp": 300, "e": "Air", "u": 0, "ra": 3, "req": ""},
+  {"id": "84b973f8d1", "n": "Earth Ring", "s": "Lapidary", "t": 10, "cp": 300, "e": "Earth", "u": 0, "ra": 3, "req": ""},
+  {"id": "4f404fe1b1", "n": "Fire Ring", "s": "Lapidary", "t": 10, "cp": 300, "e": "Fire", "u": 0, "ra": 3, "req": ""},
+  {"id": "ee3ca8e12c", "n": "Water Ring", "s": "Lapidary", "t": 10, "cp": 300, "e": "Water", "u": 0, "ra": 3, "req": ""},
+  {"id": "d501e25fbf", "n": "Basic Air wand", "s": "Mage-Smithing", "t": 1, "cp": 5, "e": "Air", "u": 0, "ra": 0, "req": "+ 1 uncut Topaz"},
+  {"id": "47a79f6fd1", "n": "Scroll: Air Dart", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "9f878af241", "n": "Scroll: Glide", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2275f40177", "n": "Scroll: Grant Freedom", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "467ea2bdb6", "n": "Scroll: Grant Jump", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "5336a41d50", "n": "Scroll: Weapon Rune: Air", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "d124bc2cd6", "n": "Basic Earth wand", "s": "Mage-Smithing", "t": 1, "cp": 5, "e": "Earth", "u": 0, "ra": 0, "req": "+ 1 uncut Amber"},
+  {"id": "28d4e4ce8f", "n": "Scroll: Ladder", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "e6e2ff59e3", "n": "Scroll: Shield of Stone", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7b4fb74c1b", "n": "Scroll: Stabilize", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "664209658b", "n": "Scroll: Stone Dart", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "47dafd91d5", "n": "Scroll: Weapon Rune: Earth", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "426f1fef77", "n": "Basic Fire wand", "s": "Mage-Smithing", "t": 1, "cp": 5, "e": "Fire", "u": 0, "ra": 0, "req": "+ 1 uncut Ruby"},
+  {"id": "e2deb318e3", "n": "Scroll: Evoke Fear", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c35842d5e8", "n": "Scroll: Fire Dart", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "85e62166c2", "n": "Scroll: Furious Strike", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "caa4bbe213", "n": "Scroll: Remove Fear", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a9058e8d78", "n": "Scroll: Weapon Rune: Fire", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "85f40c4733", "n": "Basic Water wand", "s": "Mage-Smithing", "t": 1, "cp": 5, "e": "Water", "u": 0, "ra": 0, "req": "+ 1 uncut Sapphire"},
+  {"id": "2fcaac4e54", "n": "Scroll: Sense Magic", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c0bc78bcaa", "n": "Scroll: Water Breathing", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "624fa8f565", "n": "Scroll: Water Dart", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b3d5a6a479", "n": "Scroll: Weapon Rune: Water", "s": "Mage-Smithing", "t": 1, "cp": 4, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "874144c399", "n": "Basic Life wand", "s": "Mage-Smithing", "t": 2, "cp": 15, "e": "", "u": 0, "ra": 0, "req": "+ 1 uncut Amber"},
+  {"id": "70e855cf36", "n": "Basic Lightning wand", "s": "Mage-Smithing", "t": 2, "cp": 15, "e": "", "u": 0, "ra": 0, "req": "+ 1 uncut Topaz"},
+  {"id": "f6a4234ee8", "n": "Basic Magic wand", "s": "Mage-Smithing", "t": 2, "cp": 15, "e": "", "u": 0, "ra": 0, "req": "+ 1 uncut Sapphire"},
+  {"id": "e46d707ef4", "n": "Basic Shatter Armor wand", "s": "Mage-Smithing", "t": 2, "cp": 15, "e": "", "u": 0, "ra": 0, "req": "+ 1 uncut Ruby"},
+  {"id": "afc85fd47a", "n": "Scroll: Grant Glide", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "6c0f25f44f", "n": "Scroll: Grant Resist Sleep", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "e99dca966f", "n": "Scroll: Grant Sidestep", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "81c823a8ed", "n": "Scroll: Whispering Wind", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "f3b03db5e9", "n": "Scroll: Wind Force", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "ded56242db", "n": "Scroll: Grant Resist Disease", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a495e730b3", "n": "Scroll: Pin", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "733baa8bd4", "n": "Scroll: Remove Weakness", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "389137dc82", "n": "Scroll: Sand Dart", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2d76de9cfb", "n": "Scroll: Stone Fist", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "344582b7f1", "n": "Scroll: Fire’s Taunt", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "150b4eabba", "n": "Scroll: Grant Rage", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "016d638311", "n": "Scroll: Grant Resist Fear", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "6cac3cab08", "n": "Scroll: Grant Resist Water", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "27019810c3", "n": "Scroll: Grant Modern Language", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "0f8f542f80", "n": "Scroll: Grant Resist Charm", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "6e242625ee", "n": "Scroll: Grant Resist Fire", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b36f536126", "n": "Scroll: Magic Dart", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "493fb128c8", "n": "Scroll: Remove Enchantment", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "f6461972fd", "n": "Scroll: Slick", "s": "Mage-Smithing", "t": 2, "cp": 8, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "0919aa47dd", "n": "Expert Air wand", "s": "Mage-Smithing", "t": 3, "cp": 25, "e": "Air", "u": 0, "ra": 0, "req": "+ 1 Basic Air wand, 1 octagon cut Topaz"},
+  {"id": "eb4d7be007", "n": "Repair Crystal I", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Air", "u": 0, "ra": 0, "req": ""},
+  {"id": "39d1bb47aa", "n": "Scroll: Air Bolt", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7396dbf2d2", "n": "Scroll: Blink", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4e2b0024a9", "n": "Scroll: Grant Disarm Basic Trap", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "474b9f3838", "n": "Scroll: Grant Resist Earth", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2288102c0a", "n": "Scroll: Levitate", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "0fdf92cb6c", "n": "Expert Earth wand", "s": "Mage-Smithing", "t": 3, "cp": 25, "e": "Earth", "u": 0, "ra": 0, "req": "+ 1 Basic Earth wand, 1 octagon cut Amber"},
+  {"id": "0f3376eaf1", "n": "Scroll: Cure Wounds", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "3fb3371e86", "n": "Scroll: Grant Resist Air", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4243ffe1cd", "n": "Scroll: Harvest Material", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "974b7498ec", "n": "Scroll: Stone Bolt", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7cfead508d", "n": "Expert Fire wand", "s": "Mage-Smithing", "t": 3, "cp": 25, "e": "Fire", "u": 0, "ra": 0, "req": "+ 1 Basic Fire wand, 1 octagon cut Ruby"},
+  {"id": "ed84c3faf2", "n": "Scroll: Fire Bolt", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1eca35a42b", "n": "Scroll: Fire Shield I", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "770b90bcaa", "n": "Scroll: Grant Block", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "916680653a", "n": "Scroll: Grant Taunt", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "eff41cce1d", "n": "Expert Water wand", "s": "Mage-Smithing", "t": 3, "cp": 25, "e": "Water", "u": 0, "ra": 0, "req": "+ 1 Basic Water wand, 1 octagon cut Sapphire"},
+  {"id": "f538d55f2c", "n": "Scroll: Charm Pacify", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b3f81d1e93", "n": "Scroll: Grant Resist Elements", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a17756765d", "n": "Scroll: Grant Sense Magic", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "05f0592df3", "n": "Scroll: Ice Armor I", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1a63b12fdf", "n": "Scroll: Water Bolt", "s": "Mage-Smithing", "t": 3, "cp": 12, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "03fcc26e61", "n": "Basic Protection wand", "s": "Mage-Smithing", "t": 4, "cp": 15, "e": "", "u": 0, "ra": 0, "req": "+ 1 uncut Emerald"},
+  {"id": "8d71242c04", "n": "Basic Ritual wand", "s": "Mage-Smithing", "t": 4, "cp": 15, "e": "", "u": 0, "ra": 0, "req": "+ 25 CP worth of Gem Dust"},
+  {"id": "1ebccb7867", "n": "Simple Disenchanting wand", "s": "Mage-Smithing", "t": 4, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ 10 CP worth of Gem Dust"},
+  {"id": "f33f2ab0ac", "n": "Simple Sense Magic wand", "s": "Mage-Smithing", "t": 4, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ 10 CP worth of Gem Dust"},
+  {"id": "642d0c85f3", "n": "Scroll: Bind", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2716a15b82", "n": "Scroll: Grant Hide", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2d37bd4930", "n": "Scroll: Shatter Bolt", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "73d5ea025d", "n": "Scroll: Shifting Image", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "d5af5a1ac0", "n": "Scroll: Windblast", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "04aad93ffb", "n": "Scroll: Grant Orc Strength", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a798962969", "n": "Scroll: Grant Resist Pain", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "bdd591bf65", "n": "Scroll: Protection from Air", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "e0dad39292", "n": "Scroll: Shield of Bronze", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "febed1522b", "n": "Scroll: Stone Skin", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "6547f023d7", "n": "Scroll: Controlled Flame", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "3d0869b436", "n": "Scroll: Protection from Water", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4f1656719b", "n": "Scroll: Releasing Flames", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "f6b21c3ff0", "n": "Scroll: Shatter Item", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "76893a5b81", "n": "Scroll: Charm Speak Truth", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1dd095f2ff", "n": "Scroll: Death Sight", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "5e641d0bec", "n": "Scroll: Magic Bolt", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b9f31fa57f", "n": "Scroll: Protection from Fire", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7b035ead6b", "n": "Scroll: Slow Disease", "s": "Mage-Smithing", "t": 4, "cp": 16, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "713bc0e482", "n": "Expert Life wand", "s": "Mage-Smithing", "t": 5, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ 1 Basic Life wand, 1 octagon cut Amber"},
+  {"id": "2ba5697838", "n": "Expert Lightning wand", "s": "Mage-Smithing", "t": 5, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ 1 Basic Lightning wand, 1 octagon cut Topaz"},
+  {"id": "bf2f464f12", "n": "Expert Magic wand", "s": "Mage-Smithing", "t": 5, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ 1 Basic Magic wand, 1 octagon cut Sapphire"},
+  {"id": "b200fa9b71", "n": "Expert Shatter wand", "s": "Mage-Smithing", "t": 5, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ Basic Shatter wand, 1 octagon cut Ruby"},
+  {"id": "65bcab7896", "n": "Spell Amplification Crystal", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "cc07806114", "n": "Repair Crystal II", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Air", "u": 0, "ra": 0, "req": ""},
+  {"id": "7821f1418e", "n": "Scroll: Air Blast", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "67e240536a", "n": "Scroll: Charm Ignore", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "cd1a137820", "n": "Scroll: Extend Spell", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "fee1a4ae1a", "n": "Scroll: Grant Blink", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "92570c4f46", "n": "Scroll: Protection from Earth", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "dc586f1817", "n": "Scroll: Cure Disease", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "d74b28dc8d", "n": "Scroll: Grant Resist Venom", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "3c3816429c", "n": "Scroll: Grant Rip Free", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b8508e6cc2", "n": "Scroll: Stone Blast", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b23e4e57b0", "n": "Scroll: Web", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a7e84f75bb", "n": "Scroll: Fire Blast", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7c11d8d870", "n": "Scroll: Fire Shield II", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "51a93f16cb", "n": "Scroll: Grant Slay", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4299b0607f", "n": "Scroll: Charm Befriend", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "d7cd44c2d2", "n": "Scroll: Grant Language: Magic", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "ce85ca826f", "n": "Scroll: Imprint Read", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "80c5e53162", "n": "Scroll: Speak with Mentor", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "dad950a39d", "n": "Scroll: Water Blast", "s": "Mage-Smithing", "t": 5, "cp": 20, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1f8db2c44b", "n": "Expert Protection wand", "s": "Mage-Smithing", "t": 6, "cp": 75, "e": "", "u": 0, "ra": 0, "req": "+ 1 Basic Protection wand, 1 octagon cut Emerald"},
+  {"id": "fe76f6217d", "n": "Expert Ritual wand", "s": "Mage-Smithing", "t": 6, "cp": 75, "e": "", "u": 0, "ra": 0, "req": "+ 1 Basic Ritual wand, 50 CP worth of gem dust"},
+  {"id": "ca1dba57fa", "n": "Master Air wand", "s": "Mage-Smithing", "t": 6, "cp": 50, "e": "Air", "u": 0, "ra": 0, "req": "+ 1 Expert Air wand, 1 teardrop cut Topaz"},
+  {"id": "56c0ad9d02", "n": "Scroll: Grant Disarm Complex Trap", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "57fe72312c", "n": "Scroll: Grant Dodge", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "bbfc007805", "n": "Scroll: Invisibility", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "39d6b86d1a", "n": "Scroll: Pass Wall", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "617a586693", "n": "Scroll: Wall of Lightning", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "15b0efc9ee", "n": "Master Earth wand", "s": "Mage-Smithing", "t": 6, "cp": 50, "e": "Earth", "u": 0, "ra": 0, "req": "+ 1 Expert Earth wand, 1 teardrop cut Amber"},
+  {"id": "96df9f9cb5", "n": "Scroll: Grant Ogre Strength", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "819a670f5f", "n": "Scroll: Grant Resist Damage", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "5d0ed6b6b5", "n": "Scroll: Mend", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4dd5972539", "n": "Master Fire wand", "s": "Mage-Smithing", "t": 6, "cp": 50, "e": "Fire", "u": 0, "ra": 0, "req": "+ 1 Expert Fire wand, 1 teardrop cut Ruby"},
+  {"id": "e4de9f8468", "n": "Scroll: Fireball", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "61515cdeee", "n": "Scroll: Grant Parry", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "adab29a38f", "n": "Scroll: Wall of Fire", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "d387c2c724", "n": "Master Water wand", "s": "Mage-Smithing", "t": 6, "cp": 50, "e": "Water", "u": 0, "ra": 0, "req": "+ 1 Expert Water wand, 1 teardrop cut Sapphire"},
+  {"id": "46d8840bdb", "n": "Scroll: Grant Resist Magic", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a108aeff3b", "n": "Scroll: Ice Armor II", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "e5cedff473", "n": "Scroll: Magic Blast", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "aab578aea6", "n": "Scroll: Wall of Water", "s": "Mage-Smithing", "t": 6, "cp": 24, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "0b7747c069", "n": "Complex Disenchanting wand", "s": "Mage-Smithing", "t": 7, "cp": 250, "e": "", "u": 0, "ra": 0, "req": "+ 1 Simple Disenchanting wand, 25 CP worth of Gem Dust"},
+  {"id": "9dbe65527a", "n": "Complex Sense Magic wand", "s": "Mage-Smithing", "t": 7, "cp": 250, "e": "", "u": 0, "ra": 0, "req": "+ 1 Simple Sense Magic wand, 25 CP worth of Gem Dust"},
+  {"id": "837fb8a25b", "n": "Master Life wand", "s": "Mage-Smithing", "t": 7, "cp": 100, "e": "", "u": 0, "ra": 0, "req": "+ Expert Life Wand, 1 teardrop cut Amber"},
+  {"id": "0e5f2c7d83", "n": "Master Lightning wand", "s": "Mage-Smithing", "t": 7, "cp": 100, "e": "", "u": 0, "ra": 0, "req": "+ 1 Expert Lightning wand, 1 teardrop cut Topaz"},
+  {"id": "5929e467e9", "n": "Master Magic wand", "s": "Mage-Smithing", "t": 7, "cp": 100, "e": "", "u": 0, "ra": 0, "req": "+ 1 Expert Magic wand, 1 teardrop cut Sapphire"},
+  {"id": "a9dcd68862", "n": "Master Shatter wand", "s": "Mage-Smithing", "t": 7, "cp": 100, "e": "", "u": 0, "ra": 0, "req": "+ 1 Expert Shatter wand, 1 teardrop cut Ruby"},
+  {"id": "5810bb656d", "n": "Scroll: Air Bolts", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "f9baec4674", "n": "Scroll: Dimensional Ward", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1637eb77b1", "n": "Scroll: Grant Break Free", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b8603ba76a", "n": "Scroll: Grant Phase Armor", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "9532f7c387", "n": "Scroll: Lightning Dart", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b628d7c5e2", "n": "Scroll: Remove Wound", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1547f6b4e1", "n": "Scroll: Shield of Iron", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "733103bf35", "n": "Scroll: Stone Bolts", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "ca6f938e2a", "n": "Scroll: Wall of Sand", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "fbc2d65484", "n": "Scroll: Eviscerate", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "6b1297f430", "n": "Scroll: Fire Bolts", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2a63ab11d2", "n": "Scroll: Fire Shield III", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "48d3c59b9a", "n": "Scroll: Fire’s Rage", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "314ef16a89", "n": "Scroll: Grant Knowledge", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "24b242c21b", "n": "Scroll: Ice Prison", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "21fbad6cc4", "n": "Scroll: Protection from Elements", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "76e9b2b3d6", "n": "Scroll: Water Bolts", "s": "Mage-Smithing", "t": 7, "cp": 28, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4665951066", "n": "Master Protection wand", "s": "Mage-Smithing", "t": 8, "cp": 150, "e": "", "u": 0, "ra": 2, "req": "+ 1 Expert Protection wand, 1 teardrop cut Emerald, 2 Rare materials"},
+  {"id": "2af8cfc643", "n": "Master Ritual wand", "s": "Mage-Smithing", "t": 8, "cp": 150, "e": "", "u": 0, "ra": 2, "req": "+ 1 Expert Ritual wand, 75 CP worth of gem dust, 2 Rare materials"},
+  {"id": "95c7353764", "n": "Scroll: Find Concealed", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c477f8f350", "n": "Scroll: Grant Pass Wall", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "6819fe775a", "n": "Scroll: Shatter Bolts", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c92ee6eab6", "n": "Scroll: Silence", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "ede9a93ffe", "n": "Scroll: Sleep Dart", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "89574105df", "n": "Scroll: Bridge of Earth", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a534a7c4aa", "n": "Scroll: Grant Giant Strength", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c59e0f5ea2", "n": "Scroll: Paralyze", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c330136e3c", "n": "Scroll: Stun Bolt", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "ed8b5068ec", "n": "Scroll: Circle of Fire", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "9e02b01ca3", "n": "Scroll: Grant Eviscerate", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "f7c76b0c16", "n": "Scroll: Grant Spell Parry", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7ea470427d", "n": "Scroll: Lava Shield", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "488bd6230f", "n": "Scroll: Aura of Peace", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2b1e2e6e7c", "n": "Scroll: Circle of Truth", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a906a5a14b", "n": "Scroll: Disenchant", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "5cc12cb8a3", "n": "Scroll: Magic Bolts", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "f89f2a36f7", "n": "Scroll: Remove Destruction", "s": "Mage-Smithing", "t": 8, "cp": 32, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7944771750", "n": "Wand of Casting", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": "+ 1 Mana Gem"},
+  {"id": "cfd4678cfd", "n": "Repair Crystal III", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Air", "u": 0, "ra": 0, "req": ""},
+  {"id": "1fcdaac582", "n": "Scroll: Air Blasts", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "477dcf9e2a", "n": "Scroll: Circle of Wind", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "af3f4cdf33", "n": "Scroll: Lash Spell", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "82c44f1c0c", "n": "Scroll: Lightning Bolt", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "3bfd93c7f2", "n": "Scroll: Unseal", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Air", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "9dc7524ba6", "n": "Scroll: Earthquake", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4cabdca9f6", "n": "Scroll: Regenerate", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "49f54d2238", "n": "Scroll: Shield of Steel", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "96aecdee0f", "n": "Scroll: Stone Blasts", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Earth", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "e7a06d5e8d", "n": "Scroll: Death", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "77c4d118a9", "n": "Scroll: Fire Blasts", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b832f8ed22", "n": "Scroll: Press Spell", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c7f9c08f73", "n": "Scroll: Sunder Armor", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Fire", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "fb19183291", "n": "Scroll: Activate Obelisk", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "b3b4694723", "n": "Scroll: Boon <Element>", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "86216afa39", "n": "Scroll: Ice Armor III", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "8c6193bc9b", "n": "Scroll: Water Blasts", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "99b65a75e6", "n": "Scroll: Weapon Rune – Magic", "s": "Mage-Smithing", "t": 9, "cp": 36, "e": "Water", "u": 0, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "2aff4be1c4", "n": "Grand Master Life wand", "s": "Mage-Smithing", "t": 10, "cp": 150, "e": "", "u": 0, "ra": 3, "req": "+ 1 Master Life wand, 1 circle cut Amber"},
+  {"id": "3c2ff179cf", "n": "Grand Master Lightning wand", "s": "Mage-Smithing", "t": 10, "cp": 150, "e": "", "u": 0, "ra": 3, "req": "+ 1 Master Lightning wand, 1 circle cut Topaz"},
+  {"id": "c975c36bef", "n": "Grand Master Magic wand", "s": "Mage-Smithing", "t": 10, "cp": 150, "e": "", "u": 0, "ra": 3, "req": "+ 1 Master Magic wand, 1 circle cut Sapphire"},
+  {"id": "c07730f82e", "n": "Grand Master Protection wand", "s": "Mage-Smithing", "t": 10, "cp": 225, "e": "", "u": 0, "ra": 3, "req": "+ 1 Master Protection wand, 1 circle cut emerald"},
+  {"id": "7eac4a6279", "n": "Grand Master Ritual Wand", "s": "Mage-Smithing", "t": 10, "cp": 150, "e": "", "u": 0, "ra": 3, "req": "+ 1 Master Ritual wand, 100 CP worth of Gem Dust, 1 uncut Alabaster"},
+  {"id": "078c99a329", "n": "Grand Master Shatter wand", "s": "Mage-Smithing", "t": 10, "cp": 150, "e": "", "u": 0, "ra": 3, "req": "+ 1 Master Shatter wand, 1 circle cut Ruby"},
+  {"id": "564b1098c1", "n": "Grand Master Air wand", "s": "Mage-Smithing", "t": 10, "cp": 75, "e": "Air", "u": 0, "ra": 3, "req": "+ 1 Master Air wand, 1 circle cut Topaz"},
+  {"id": "ec918a5dc0", "n": "Scroll: Confine", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Air", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "7695dd0de4", "n": "Scroll: Grant Phase", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Air", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "8d78077a31", "n": "Scroll: Lightning Blast", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Air", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "76c620ca82", "n": "Scroll: Portal", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Air", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "628e610859", "n": "Scroll: Suffocation", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Air", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "34ddfe2f2d", "n": "Grand Master Earth wand", "s": "Mage-Smithing", "t": 10, "cp": 75, "e": "Earth", "u": 0, "ra": 3, "req": "+ 1 Master Earth wand, 1 circle cut Amber"},
+  {"id": "7c488f6f8d", "n": "Scroll: Circle of Sand", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Earth", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "c049e94766", "n": "Scroll: Grant Resist Effect", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Earth", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "5d9180a9ee", "n": "Scroll: Imprison", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Earth", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "4c6f1cf057", "n": "Scroll: Smashing Fist", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Earth", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "a5d6861dd5", "n": "Grand Master Fire wand", "s": "Mage-Smithing", "t": 10, "cp": 75, "e": "Fire", "u": 0, "ra": 3, "req": "+ 1 Master Fire wand, 1 circle cut Ruby"},
+  {"id": "830ebc29bb", "n": "Scroll: Doom", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Fire", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "e7d2628876", "n": "Scroll: Fire Storm", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Fire", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1e8e66f263", "n": "Scroll: Fireballs", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Fire", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "21b64d1ac8", "n": "Scroll: Grant Press", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Fire", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "57b763d03a", "n": "Scroll: Grant Riposte", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Fire", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "aca8c13948", "n": "Grand Master Water wand", "s": "Mage-Smithing", "t": 10, "cp": 75, "e": "Water", "u": 0, "ra": 3, "req": "+ 1 Master Water Wand, 1 circle cut Sapphire"},
+  {"id": "a7e016fdd9", "n": "Scroll: Charm Enslave", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Water", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "afe41df8d7", "n": "Scroll: Grant Reflect Magic", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Water", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "167bb79967", "n": "Scroll: Ice Armor IV", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Water", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "1d7700ab9c", "n": "Scroll: Inspiration of Water", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Water", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "fc7dc8db5a", "n": "Scroll: Magic Blasts", "s": "Mage-Smithing", "t": 10, "cp": 40, "e": "Water", "u": 1, "ra": 0, "req": "Scroll (legal copy required; 4 CP/level; Gem Dust can reduce CP—min 1 CP)."},
+  {"id": "5684434c31", "n": "Basic Armor", "s": "Smithing", "t": 1, "cp": 50, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ceffdd2a50", "n": "Basic Arrows/Bolts", "s": "Smithing", "t": 1, "cp": 5, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "8cd735bae1", "n": "Basic Great Weapon", "s": "Smithing", "t": 1, "cp": 25, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "50766fd39a", "n": "Basic Long Weapon", "s": "Smithing", "t": 1, "cp": 15, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5bf85282be", "n": "Basic Manacles/Chain", "s": "Smithing", "t": 1, "cp": 25, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fc42b3b4c6", "n": "Basic Shield", "s": "Smithing", "t": 1, "cp": 25, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "0fc99e40ca", "n": "Basic Short Weapon", "s": "Smithing", "t": 1, "cp": 10, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "46c6fb0d32", "n": "Basic Small Weapon", "s": "Smithing", "t": 1, "cp": 5, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "eaa7dfdfa1", "n": "Basic Tool Forging", "s": "Smithing", "t": 1, "cp": 5, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "fa2531b2c5", "n": "Armor Patch I", "s": "Smithing", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5aff4d9d05", "n": "Balancing Stone I", "s": "Smithing", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "cc8f93ba9d", "n": "Sharpening Stone I", "s": "Smithing", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d08c40e388", "n": "Craft Expert Armor", "s": "Smithing", "t": 3, "cp": 250, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c267da3375", "n": "Craft Expert Great Weapon", "s": "Smithing", "t": 3, "cp": 125, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "be9bc7fb11", "n": "Craft Expert Long Weapon", "s": "Smithing", "t": 3, "cp": 75, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a507d228d2", "n": "Craft Expert Shield", "s": "Smithing", "t": 3, "cp": 125, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "35892494c7", "n": "Craft Expert Short Weapon", "s": "Smithing", "t": 3, "cp": 50, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "9fdb046853", "n": "Craft Expert Small Weapon", "s": "Smithing", "t": 3, "cp": 25, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "98a3101095", "n": "Expert Manacles/Chains", "s": "Smithing", "t": 3, "cp": 75, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d2b9af47af", "n": "Expert Shield Brace", "s": "Smithing", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "07d05c64ff", "n": "Expert Tool Forging", "s": "Smithing", "t": 3, "cp": 25, "e": "", "u": 0, "ra": 0, "req": "+ 1 Basic Wood Axe/Hoe/Pickaxe"},
+  {"id": "9ca68d2372", "n": "Alchemy Vein I", "s": "Smithing", "t": 4, "cp": 50, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "50f8c9d9db", "n": "Craft Expert Arrows/Bolts", "s": "Smithing", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a0fe25b429", "n": "Slay Stone", "s": "Smithing", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e01f4be4c0", "n": "Armor Patch II", "s": "Smithing", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2cb26174ca", "n": "Balancing Stone II", "s": "Smithing", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "255ed2b8ec", "n": "Master Shield Brace", "s": "Smithing", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "68d1a69dbb", "n": "Sharpening Stone II", "s": "Smithing", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5a7188e032", "n": "Craft Master Armor", "s": "Smithing", "t": 6, "cp": 500, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "c0fba73488", "n": "Craft Master Great Weapon", "s": "Smithing", "t": 6, "cp": 250, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "da8f85b359", "n": "Craft Master Long Weapon", "s": "Smithing", "t": 6, "cp": 150, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "dc857a8198", "n": "Craft Master Shield", "s": "Smithing", "t": 6, "cp": 250, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "8aacb331e3", "n": "Craft Master Short Weapon", "s": "Smithing", "t": 6, "cp": 100, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "586b4a57eb", "n": "Craft Master Small Weapon", "s": "Smithing", "t": 6, "cp": 50, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "53e65d9e50", "n": "Master Manacles/Chain", "s": "Smithing", "t": 6, "cp": 150, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "0532efd8da", "n": "Master Tool Forging", "s": "Smithing", "t": 6, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ Expert Wood Axe/Hoe/Pickaxe"},
+  {"id": "65e9f18c4d", "n": "Vorpal Stone I", "s": "Smithing", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5fdef0686b", "n": "Armor Patch III", "s": "Smithing", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "2df22d7863", "n": "Craft Master Arrows/Bolts", "s": "Smithing", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "043df6ba87", "n": "Pinning Arrow", "s": "Smithing", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "72dab9499d", "n": "Alchemy Vein II", "s": "Smithing", "t": 8, "cp": 100, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "644441eb13", "n": "Balancing Stone III", "s": "Smithing", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "3a13158345", "n": "Grand Master Shield Brace", "s": "Smithing", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "23e0d76e2f", "n": "Sharpening Stone III", "s": "Smithing", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e78aac4281", "n": "Vorpal Stone II", "s": "Smithing", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "00e48f3970", "n": "Armor Patch IV", "s": "Smithing", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "941a08ae7e", "n": "Crushing Arrow", "s": "Smithing", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "93e3afb7d1", "n": "Resist Crush Patch", "s": "Smithing", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "37be84aa61", "n": "Alchemy Vein III", "s": "Smithing", "t": 10, "cp": 150, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "6dbff0a043", "n": "Craft Grand Master Armor", "s": "Smithing", "t": 10, "cp": 750, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "7ef55d575c", "n": "Craft Grand Master Arrows/Bolts", "s": "Smithing", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "1ec8477943", "n": "Craft Grand Master Great Weapon", "s": "Smithing", "t": 10, "cp": 375, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "3807d26521", "n": "Craft Grand Master Long Weapon", "s": "Smithing", "t": 10, "cp": 225, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "af0873fba7", "n": "Craft Grand Master Shield", "s": "Smithing", "t": 10, "cp": 375, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "24ee99aba6", "n": "Craft Grand Master Short Weapon", "s": "Smithing", "t": 10, "cp": 150, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "a3816d27ee", "n": "Craft Grand Master Small Weapon", "s": "Smithing", "t": 10, "cp": 75, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "2dee0fe4ae", "n": "Grand Master Manacles/Chain", "s": "Smithing", "t": 10, "cp": 250, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "3482857a68", "n": "Grand Master Tool Forging", "s": "Smithing", "t": 10, "cp": 75, "e": "", "u": 0, "ra": 0, "req": "+ Master Wood Axe/Hoe/Pickaxe"},
+  {"id": "373c3d1c98", "n": "Vorpal Stone III", "s": "Smithing", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "bdf53ee1b0", "n": "Basic Fishing Rod", "s": "Tinkering", "t": 1, "cp": 5, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "0f45811582", "n": "Basic Lock Picks (Single use)", "s": "Tinkering", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "503faf9cd2", "n": "Craft (Alchemy, Lapidary, Smithing, etc.) Tools", "s": "Tinkering", "t": 1, "cp": 10, "e": "", "u": 0, "ra": 0, "req": "/tool"},
+  {"id": "7e2d48fe2d", "n": "Lock", "s": "Tinkering", "t": 1, "cp": 10, "e": "", "u": 0, "ra": 0, "req": "/level of the lock crafted"},
+  {"id": "ada0da4eab", "n": "Disease Injector", "s": "Tinkering", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c36b0541de", "n": "Mechanized Arrow Enhancer (Single-Use)", "s": "Tinkering", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "14a08d5824", "n": "Potion Injector (Single-Use)", "s": "Tinkering", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c9e487e367", "n": "Simple Spinner Lure", "s": "Tinkering", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ab2f997b83", "n": "Slicky Slick", "s": "Tinkering", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "aaf13ad8c9", "n": "Deflector (Single-Use)", "s": "Tinkering", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e5dbb9c404", "n": "Expert Fishing Rod", "s": "Tinkering", "t": 3, "cp": 25, "e": "", "u": 0, "ra": 0, "req": "+ Basic Fishing Rod"},
+  {"id": "98353dad40", "n": "Expert Lock Picks", "s": "Tinkering", "t": 3, "cp": 100, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ef8f73d215", "n": "Lesser Element Channeler (Single-Use)", "s": "Tinkering", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ead7f94f17", "n": "Pursuit Inhibitor", "s": "Tinkering", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "01da5e0ed6", "n": "Puzzle Lock I", "s": "Tinkering", "t": 3, "cp": 75, "e": "", "u": 0, "ra": 0, "req": "+ cost of the original lock"},
+  {"id": "c34165168f", "n": "Archery Scope I", "s": "Tinkering", "t": 4, "cp": 100, "e": "", "u": 0, "ra": 1, "req": ""},
+  {"id": "1f560cf698", "n": "D.D.O.M. (Don’t Die On Me) (Single-Use)", "s": "Tinkering", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ba5f0e50d1", "n": "Flashy Spinner Lure", "s": "Tinkering", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d66b8f5593", "n": "Trade Skill Enhancer (Single Use)", "s": "Tinkering", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "eab041eee5", "n": "Disguise Kit (Single Use)", "s": "Tinkering", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "485ce57ba2", "n": "Light Emitter (Single-Use)", "s": "Tinkering", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": "."},
+  {"id": "0bd4b1e9c3", "n": "Magical Accuracy Enhancer (Single-Use)", "s": "Tinkering", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "cfb8b5d2ba", "n": "R.A.E.D (Re-Assemble Enhancing Device) (Single-Use)", "s": "Tinkering", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "9addc116d8", "n": "Sonar Lure", "s": "Tinkering", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "dc63a193a7", "n": "Element Channeler (Single-Use)", "s": "Tinkering", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "16aa56046f", "n": "K.I.T (Keeps It Together)", "s": "Tinkering", "t": 6, "cp": 30, "e": "", "u": 0, "ra": 0, "req": "/tool it will hold"},
+  {"id": "d1216e9864", "n": "L.A.S.H. (Limited Area Subterfuge Heightener)", "s": "Tinkering", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ab8c493da2", "n": "Master Fishing Rod", "s": "Tinkering", "t": 6, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ Expert Fishing Rod"},
+  {"id": "e54cd63df8", "n": "Muscle Enhancer (Single-Use)", "s": "Tinkering", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "779a74a597", "n": "Puzzle Lock II", "s": "Tinkering", "t": 6, "cp": 150, "e": "", "u": 0, "ra": 2, "req": "+ cost of the original lock"},
+  {"id": "11363c886a", "n": "Truth Detector (Single-Use)", "s": "Tinkering", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "542e9af463", "n": "Archery Scope II", "s": "Tinkering", "t": 7, "cp": 200, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "3cbcb2933c", "n": "Gazing Device (Single Use)", "s": "Tinkering", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "06e435ab70", "n": "Golden Spinner Lure", "s": "Tinkering", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b8f48fa783", "n": "Jumper Cables (Single-Use)", "s": "Tinkering", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ed778b3431", "n": "Magic Shield Rebuilding (Single-Use)", "s": "Tinkering", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "5c7b3e6544", "n": "Master Lock Picks", "s": "Tinkering", "t": 7, "cp": 200, "e": "", "u": 0, "ra": 2, "req": ""},
+  {"id": "0e681c963d", "n": "Boom Boom Magic Thingy (Single-Use)", "s": "Tinkering", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "415307f11e", "n": "Gas Mixer", "s": "Tinkering", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "521a978dce", "n": "Multi-Hook Lure", "s": "Tinkering", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "07819fa677", "n": "S.T.R.I.N.G. (Single Time Retain Insure Nobody Gets) (Single-Use)", "s": "Tinkering", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "123ea759a7", "n": "G.R.C. (Golem Remote Control) (Single-Use)", "s": "Tinkering", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ad03ec4bed", "n": "Puzzle Lock III", "s": "Tinkering", "t": 9, "cp": 225, "e": "", "u": 0, "ra": 3, "req": "+ cost of the original lock"},
+  {"id": "21a147a3ad", "n": "Treasure Lure", "s": "Tinkering", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "3e10074c41", "n": "Weapon Accuracy Enhancer (Single-Use)", "s": "Tinkering", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "f5e31d6c5f", "n": "Archery Scope III", "s": "Tinkering", "t": 10, "cp": 300, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "fbac38515b", "n": "Grand Master Fishing Rod", "s": "Tinkering", "t": 10, "cp": 75, "e": "", "u": 0, "ra": 0, "req": "+ Master Fishing Rod"},
+  {"id": "c33ded1bca", "n": "Grand Master Lock Picks", "s": "Tinkering", "t": 10, "cp": 300, "e": "", "u": 0, "ra": 3, "req": ""},
+  {"id": "88070fdec0", "n": "Greater Element Channeler (Single-Use)", "s": "Tinkering", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "a225c13b88", "n": "Portal Device (Single Use)", "s": "Tinkering", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "f1d30862e3", "n": "Reconstruction Device (Single-Use)", "s": "Tinkering", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "dd151050f3", "n": "Basic Bug Net", "s": "Trap Making", "t": 1, "cp": 5, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c7ca028f6f", "n": "Minor Charm", "s": "Trap Making", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4623f752e6", "n": "Small Weapon", "s": "Trap Making", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "d178de7a0d", "n": "Trip Trap", "s": "Trap Making", "t": 1, "cp": 4, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "658996bd42", "n": "Alarm", "s": "Trap Making", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "54965f5160", "n": "Dart", "s": "Trap Making", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "8d9d22a84e", "n": "Small Paralyze Trap", "s": "Trap Making", "t": 2, "cp": 8, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "32390330ce", "n": "Disenchant", "s": "Trap Making", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a9c5774282", "n": "Expert Bug Net", "s": "Trap Making", "t": 3, "cp": 25, "e": "", "u": 0, "ra": 0, "req": "+ Basic Bug Net"},
+  {"id": "f889276d22", "n": "Expert Spell Storing", "s": "Trap Making", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c5ffee2286", "n": "Oil Slick Trap", "s": "Trap Making", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "ea76ad0cd2", "n": "Small Vorpal", "s": "Trap Making", "t": 3, "cp": 12, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "998326481e", "n": "Battering Ram", "s": "Trap Making", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "88aa3bc9b5", "n": "Disarm", "s": "Trap Making", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "9c0e8deda8", "n": "Gas Trap", "s": "Trap Making", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "4b96a06244", "n": "Pin Trap", "s": "Trap Making", "t": 4, "cp": 16, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "27b721d8f4", "n": "Spiked Floor", "s": "Trap Making", "t": 4, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "25559b2eb8", "n": "Bear Trap", "s": "Trap Making", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "dbdeb3c94a", "n": "Eye Gouge Trap", "s": "Trap Making", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "74abf8a8a9", "n": "Large Weapon", "s": "Trap Making", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "89955557c8", "n": "Small Flesh Lopper Trap", "s": "Trap Making", "t": 5, "cp": 20, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b60fd2ec37", "n": "Concealed Pocket", "s": "Trap Making", "t": 6, "cp": 100, "e": "", "u": 0, "ra": 1, "req": ""},
+  {"id": "b516dfd2d8", "n": "Eviscerate", "s": "Trap Making", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "b7e65f6033", "n": "Large Paralyze Trap", "s": "Trap Making", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "cdce195a8e", "n": "Master Bug Net", "s": "Trap Making", "t": 6, "cp": 50, "e": "", "u": 0, "ra": 0, "req": "+ Expert Bug Net"},
+  {"id": "e03bb059d5", "n": "Master Spell Storing", "s": "Trap Making", "t": 6, "cp": 24, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "baf70c553d", "n": "Cage", "s": "Trap Making", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "e4fcace792", "n": "Large Vorpal", "s": "Trap Making", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "009a470308", "n": "Limb Snapper", "s": "Trap Making", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "699190b2c3", "n": "Sonic Wave Trap", "s": "Trap Making", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "85b5a1f645", "n": "Weapon Breaker", "s": "Trap Making", "t": 7, "cp": 28, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a6466d0160", "n": "Concealed Compartment", "s": "Trap Making", "t": 8, "cp": 100, "e": "", "u": 0, "ra": 1, "req": ""},
+  {"id": "8988622e69", "n": "Electrified Floor", "s": "Trap Making", "t": 8, "cp": 64, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "c26df1258a", "n": "Song Storing", "s": "Trap Making", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "9ec1e84b5e", "n": "Transposition", "s": "Trap Making", "t": 8, "cp": 32, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "49be7b5eb8", "n": "Heavy Weapon", "s": "Trap Making", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "214d847fbc", "n": "Large Flesh Lopper Trap", "s": "Trap Making", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "91cf108dcd", "n": "Pit", "s": "Trap Making", "t": 9, "cp": 100, "e": "", "u": 0, "ra": 1, "req": ""},
+  {"id": "b8cbb5f293", "n": "Throat Spike Trap", "s": "Trap Making", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "62be9a5bb3", "n": "Web Net Trap", "s": "Trap Making", "t": 9, "cp": 36, "e": "", "u": 0, "ra": 0, "req": ""},
+  {"id": "a89c74c255", "n": "Death Blow", "s": "Trap Making", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "9fb0eea167", "n": "Destruction Trap", "s": "Trap Making", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "50983b42a3", "n": "Evil Twin", "s": "Trap Making", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "4f3058d0c8", "n": "Grand Master Bug Net", "s": "Trap Making", "t": 10, "cp": 75, "e": "", "u": 0, "ra": 0, "req": "+ Master Bug Net"},
+  {"id": "53e1901e5f", "n": "Grand Master Spell Storing", "s": "Trap Making", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""},
+  {"id": "e5af65b987", "n": "Heavy Vorpal", "s": "Trap Making", "t": 10, "cp": 40, "e": "", "u": 1, "ra": 0, "req": ""}
+];
+
+document.getElementById("recipeCount").textContent = RECIPE_DB.length;
+
+let craftList = [];
+let skillEntries = [ { id: crypto.randomUUID(), skill: "Smithing", level: 3 } ];
+
+const el = (id)=>document.getElementById(id);
+
+function clampInt(v,min,max){ const n=parseInt(v,10); if(Number.isNaN(n)) return min; return Math.min(max, Math.max(min,n)); }
+function escapeHtml(s){ return (s ?? "").toString().replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+function fmtTime(seconds){
+  const s = Math.max(0, Math.round(seconds));
+  const h = Math.floor(s/3600);
+  const m = Math.floor((s%3600)/60);
+  const r = s%60;
+  if(h>0) return `${h}h ${m}m`;
+  if(m>0) return `${m}m ${r}s`;
+  return `${r}s`;
+}
+function getLabCP(){
+  const node = el('labCP');
+  const val = node ? node.value : 0;
+  return clampInt(val, 0, 100);
+}
+
+function getMaterials(){
+  return {
+    Air: clampInt(el("matAir").value, 0, 99999),
+    Earth: clampInt(el("matEarth").value, 0, 99999),
+    Fire: clampInt(el("matFire").value, 0, 99999),
+    Water: clampInt(el("matWater").value, 0, 99999),
+    Uncommon: clampInt(el("matUncommon").value, 0, 99999),
+    Rare: clampInt(el("matRare").value, 0, 99999),
+    Other: el("otherComponents").value.trim()
+  };
+}
+
+function getSkillLevelMap(){
+  const map={};
+  skillEntries.forEach(ent=>{
+    if(!ent.skill) return;
+    map[ent.skill]=Math.max(map[ent.skill]||0, ent.level||0);
+  });
+  return map;
+}
+
+function buildLevelOptions(selected){ let out=""; for(let i=0;i<=10;i++) out+=`<option value="${i}" ${i===selected?"selected":""}>${i}</option>`; return out; }
+function buildSkillOptions(selected){ return SKILLS.map(s=>`<option value="${escapeHtml(s.name)}" ${s.name===selected?"selected":""}>${escapeHtml(s.name)} (${escapeHtml(s.element)})</option>`).join(""); }
+
+function renderSkillRows(){
+  const box = el("skillRows");
+  box.innerHTML = "";
+  skillEntries.forEach(ent=>{
+    const row=document.createElement("div");
+    row.className="skillRow";
+    row.innerHTML = `
+      <div>
+        <label>Crafting skill</label>
+        <select data-role="skill" data-id="${ent.id}">${buildSkillOptions(ent.skill)}</select>
+      </div>
+      <div>
+        <label>Level</label>
+        <select data-role="level" data-id="${ent.id}">${buildLevelOptions(ent.level)}</select>
+        <div class="small muted" style="margin-top:6px">CP pool: <b class="k">${ent.level * CP_PER_LEVEL}</b></div>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn2" data-role="removeSkill" data-id="${ent.id}">Remove</button>
+      </div>`;
+    box.appendChild(row);
+  });
+
+  box.querySelectorAll('select[data-role="skill"]').forEach(sel=>{
+    sel.addEventListener("change",(e)=>{
+      const id=e.target.getAttribute("data-id");
+      const val=e.target.value;
+      const ent=skillEntries.find(x=>x.id===id);
+      if(ent) ent.skill=val;
+      refreshRecipeSelect();
+      render();
+    });
+  });
+  box.querySelectorAll('select[data-role="level"]').forEach(sel=>{
+    sel.addEventListener("change",(e)=>{
+      const id=e.target.getAttribute("data-id");
+      const val=clampInt(e.target.value,0,10);
+      const ent=skillEntries.find(x=>x.id===id);
+      if(ent) ent.level=val;
+      render();
+    });
+  });
+  box.querySelectorAll('button[data-role="removeSkill"]').forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      const id=e.target.getAttribute("data-id");
+      skillEntries = skillEntries.filter(x=>x.id!==id);
+      if(skillEntries.length===0) skillEntries=[{ id: crypto.randomUUID(), skill:"Smithing", level:0 }];
+      refreshRecipeSelect();
+      render();
+    });
+  });
+}
+
+function addSkillRow(){
+  const used=new Set(skillEntries.map(x=>x.skill));
+  const firstUnused = SKILLS.find(s=>!used.has(s.name))?.name || SKILLS[0].name;
+  skillEntries.push({ id: crypto.randomUUID(), skill:firstUnused, level:0 });
+  refreshRecipeSelect();
+  render();
+}
+
+function buildFilters(){
+  const skillFilter=el("skillFilter");
+  const tierFilter=el("tierFilter");
+  skillFilter.innerHTML=""; tierFilter.innerHTML="";
+
+  const myOpt=document.createElement("option");
+  myOpt.value="__my__";
+  myOpt.textContent="My skills";
+  skillFilter.appendChild(myOpt);
+
+  const allOpt=document.createElement("option");
+  allOpt.value="";
+  allOpt.textContent="All skills";
+  skillFilter.appendChild(allOpt);
+
+  SKILLS.forEach(s=>{
+    const o=document.createElement("option");
+    o.value=s.name; o.textContent=s.name;
+    skillFilter.appendChild(o);
+  });
+  skillFilter.value="__my__";
+
+  const tAll=document.createElement("option");
+  tAll.value=""; tAll.textContent="All tiers";
+  tierFilter.appendChild(tAll);
+
+  const tiers=Array.from(new Set(RECIPE_DB.map(r=>r.t).filter(x=>x!=null))).sort((a,b)=>a-b);
+  tiers.forEach(t=>{
+    const o=document.createElement("option");
+    o.value=String(t); o.textContent=`Tier ${t}`;
+    tierFilter.appendChild(o);
+  });
+
+  skillFilter.addEventListener("change", refreshRecipeSelect);
+  tierFilter.addEventListener("change", refreshRecipeSelect);
+  el("searchBox").addEventListener("input", refreshRecipeSelect);
+}
+
+function refreshRecipeSelect(){
+  const q=el("searchBox").value.trim().toLowerCase();
+  const filterSkill=el("skillFilter").value;
+  const filterTier=el("tierFilter").value;
+
+  const selectedSkills = new Set(skillEntries.map(x=>x.skill).filter(Boolean));
+
+  const list = RECIPE_DB
+    .filter(r=>{
+      if(filterSkill==="__my__") return selectedSkills.size===0 ? true : selectedSkills.has(r.s);
+      if(filterSkill==="") return true;
+      return r.s===filterSkill;
+    })
+    .filter(r=> !filterTier || String(r.t ?? "")===filterTier)
+    .filter(r=>{
+      if(!q) return true;
+      const hay = `${r.n} ${r.s} tier ${r.t ?? ""} ${r.req ?? ""}`.toLowerCase();
+      return hay.includes(q);
+    })
+    .sort((a,b)=>{
+      const aSel=selectedSkills.has(a.s)?0:1;
+      const bSel=selectedSkills.has(b.s)?0:1;
+      if(aSel!==bSel) return aSel-bSel;
+      if(a.s!==b.s) return a.s.localeCompare(b.s);
+      const ta=a.t ?? 999, tb=b.t ?? 999;
+      if(ta!==tb) return ta-tb;
+      if(a.cp!==b.cp) return a.cp-b.cp;
+      return a.n.localeCompare(b.n);
+    });
+
+  const sel=el("recipeSelect");
+  sel.innerHTML="";
+
+  const groups={};
+  list.forEach(r=>{ (groups[r.s] ||= []).push(r); });
+
+  Object.keys(groups).forEach(sk=>{
+    const og=document.createElement("optgroup");
+    og.label = sk + (selectedSkills.has(sk) ? " (your skill)" : "");
+    groups[sk].forEach(r=>{
+      const o=document.createElement("option");
+      o.value=r.id;
+      o.textContent=`${r.n} — ${r.t ? "Tier "+r.t+" — " : ""}${r.cp} CP`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+
+  if(sel.options.length) sel.selectedIndex=0;
+}
+
+function addRecipeById(id){
+  const r=RECIPE_DB.find(x=>x.id===id);
+  if(!r) return;
+  craftList.push({ ...r, lineId: crypto.randomUUID() });
+  render();
+}
+function removeLine(lineId){ craftList = craftList.filter(x=>x.lineId!==lineId); render(); }
+
+function renderCraftTable(){
+  const box=el("craftCards");
+  box.innerHTML="";
+  if(craftList.length===0){
+    const d=document.createElement("div");
+    d.className="muted small";
+    d.style.padding="10px 8px";
+    d.textContent="No recipes selected yet.";
+    box.appendChild(d);
+    return;
+  }
+
+  craftList.forEach(item=>{
+    const card=document.createElement("div");
+    card.className="recipeBubble";
+
+    const parts = [];
+    parts.push(`<b>${escapeHtml(item.s)}</b>`);
+    parts.push(`Tier <b class="k">${item.t ?? "—"}</b>`);
+    parts.push(`CP <b class="k">${item.cp}</b>`);
+
+    // Materials/requirements summary at end (only if present)
+    const tail = [];
+    if(item.u) tail.push(`${item.u} Uncommon material${item.u===1?"":"s"}`);
+    if(item.ra) tail.push(`${item.ra} Rare material${item.ra===1?"":"s"}`);
+    if(item.req) tail.push(item.req);
+
+    const meta = parts.join(' <span class="sep">|</span> ') + (tail.length ? ` <span class="sep">|</span> ${escapeHtml(tail.join(" • "))}` : "");
+
+    card.innerHTML = `
+      <div class="lines">
+        <div class="title">${escapeHtml(item.n)}</div>
+        <div class="meta">${meta}</div>
+      </div>
+      <div class="actions">
+        <button class="btn2" type="button">Remove</button>
+      </div>
+    `;
+
+    card.querySelector("button").onclick=()=>removeLine(item.lineId);
+    box.appendChild(card);
+  });
+}
+function renderMaterialsSummary(){
+  const m=getMaterials();
+  el("materialsSummary").innerHTML = `
+    <span class="chip">Air: <b class="k">${m.Air}</b></span>
+    <span class="chip">Earth: <b class="k">${m.Earth}</b></span>
+    <span class="chip">Fire: <b class="k">${m.Fire}</b></span>
+    <span class="chip">Water: <b class="k">${m.Water}</b></span>
+    <span class="chip">Uncommon: <b class="k">${m.Uncommon}</b></span>
+    <span class="chip">Rare: <b class="k">${m.Rare}</b></span>`;
+}
+
+function compute(){
+  const levels=getSkillLevelMap();
+  const labCP=getLabCP();
+  const mats=getMaterials();
+
+  const needBySkill={};
+  craftList.forEach(r=>{ needBySkill[r.s]=(needBySkill[r.s]||0)+(r.cp||0); });
+
+  const totalUncommonReq=craftList.reduce((s,r)=>s+(r.u||0),0);
+  const totalRareReq=craftList.reduce((s,r)=>s+(r.ra||0),0);
+
+  const gating=[];
+  craftList.forEach(r=>{
+    const lvl=levels[r.s]||0;
+    const tier=r.t ?? 0;
+    if(tier && lvl < tier) gating.push(`${r.n} (needs ${r.s} Tier ${tier}, you have ${lvl})`);
+  });
+
+  const commonPool={ Air:mats.Air, Earth:mats.Earth, Fire:mats.Fire, Water:mats.Water };
+  const totalCommon = commonPool.Air + commonPool.Earth + commonPool.Fire + commonPool.Water;
+  const labConflict = (labCP>0) && (totalCommon>0);
+
+  const bySkill={};
+  // Include all selected skills even if no recipes are chosen yet (so results show CP pools).
+  const skillSet = new Set([...Object.keys(levels), ...Object.keys(needBySkill)]);
+  Array.from(skillSet).forEach(skill=>{
+    const level=levels[skill]||0;
+    const baseCP=level * CP_PER_LEVEL;
+    const need=(needBySkill[skill]||0);
+
+    const usedSkill=Math.min(baseCP, need);
+    const remAfterSkill=Math.max(0, need-usedSkill);
+
+    bySkill[skill]={
+      level, baseCP, need,
+      usedSkill,
+      usedLab: 0,
+      usedCommon: 0,
+      remaining: remAfterSkill,
+      element: skillMeta(skill)?.element || ""
+    };
+  });
+
+  // Shared lab/tools CP pool applied after skill CP, before materials.
+  let labRemaining = labCP;
+  const skillsByNeed = Object.keys(bySkill).sort((a,b)=>{
+    const ra = bySkill[a].remaining;
+    const rb = bySkill[b].remaining;
+    if(rb!==ra) return rb-ra;
+    return a.localeCompare(b);
+  });
+  skillsByNeed.forEach(skill=>{
+    if(labRemaining<=0) return;
+    const d = bySkill[skill];
+    if(d.remaining<=0) return;
+    const used = Math.min(labRemaining, d.remaining);
+    d.usedLab = used;
+    d.remaining -= used;
+    labRemaining -= used;
+  });
+
+  // Common materials only if labCP == 0
+  if(labCP===0){
+    Object.keys(bySkill).forEach(skill=>{
+      const d = bySkill[skill];
+      if(d.remaining<=0) return;
+
+      const elem = d.element;
+      let usedCommon = 0;
+
+      if(elem==="Air"||elem==="Earth"||elem==="Fire"||elem==="Water"){
+        const avail = commonPool[elem]||0;
+        usedCommon = Math.min(avail, d.remaining);
+        commonPool[elem] -= usedCommon;
+      } else if(elem==="All"){
+        const order = ["Air","Earth","Fire","Water"];
+        let rem = d.remaining;
+        for(const k of order){
+          if(rem<=0) break;
+          const avail = commonPool[k]||0;
+          const take = Math.min(avail, rem);
+          commonPool[k] -= take;
+          usedCommon += take;
+          rem -= take;
+        }
+      }
+
+      d.usedCommon = usedCommon;
+      d.remaining = Math.max(0, d.remaining - usedCommon);
+    });
+  }
+
+  const totalRecipeCP = craftList.reduce((s,r)=>s+(r.cp||0),0);
+
+  let appliedCP=0, remainingTotal=0;
+  Object.values(bySkill).forEach(d=>{
+    appliedCP += d.usedSkill + d.usedLab + d.usedCommon;
+    remainingTotal += d.remaining;
+  });
+
+  const seconds = appliedCP * 30;
+
+  return {
+    bySkill,
+    totalRecipeCP,
+    totalUncommonReq,
+    totalRareReq,
+    uncommonOk: mats.Uncommon >= totalUncommonReq,
+    rareOk: mats.Rare >= totalRareReq,
+    labCP,
+    labRemaining,
+    labConflict,
+    gating,
+    remainingTotal,
+    seconds
+  };
+}
+
+function renderResults(){
+  try{
+    const mats=getMaterials();
+    const r=compute();
+    const pills=[];
+    pills.push(`<span class="chip">Total recipe CP: <b class="k">${r.totalRecipeCP}</b></span>`);
+    pills.push(`<span class="chip">Lab/Tools CP: <b class="k">${r.labCP}</b> | Unused: <b class="k">${r.labRemaining}</b></span>`);
+    pills.push(`<span class="chip">Estimated time (CP applied × 30s): <b class="k">${fmtTime(r.seconds)}</b></span>`);
+
+    pills.push(`<span class="chip">Uncommon required: <b class="k ${r.uncommonOk?"ok":"bad"}">${r.totalUncommonReq}</b> | you have <b class="k">${mats.Uncommon}</b></span>`);
+    pills.push(`<span class="chip">Rare required: <b class="k ${r.rareOk?"ok":"bad"}">${r.totalRareReq}</b> | you have <b class="k">${mats.Rare}</b></span>`);
+
+    if(r.labConflict) pills.push(`<span class="chip"><span class="warn">⚠ Lab/tools + materials</span> • You selected Lab/Tools CP and also entered common materials. This calculator will not spend common materials when Lab/Tools CP is used.</span>`);
+    if(r.gating.length) pills.push(`<span class="chip stack"><div class="bad"><b>⛔ Skill gating</b></div><div>• ${escapeHtml(r.gating.slice(0,10).join(" | "))}${r.gating.length>10 ? " | …" : ""}</div></span>`);
+
+    Object.keys(r.bySkill).sort().forEach(skill=>{
+      const d=r.bySkill[skill];
+      const status = d.remaining===0 ? "ok" : "bad";
+      pills.push(`<span class="chip stack"><div><b>${escapeHtml(skill)}</b> | Level <span class="k">${d.level}</span> | CP <span class="k">${d.baseCP}</span></div><div>CP Needed for this crafting session: <b class="k">${d.need}</b></div><div>CP Spent for this crafting session: Skill CP <b class="k">${d.usedSkill}</b> | Lab/Tool <b class="k">${d.usedLab}</b> | Common Material <b class="k">${d.usedCommon}</b></div><div>CP Still required for this crafting session: <b class="k ${status}">${d.remaining}</b></div></span>`);
+    });
+
+    pills.push(r.remainingTotal>0
+      ? `<span class="chip"><span class="bad">Total remaining CP:</span> <b class="k">${r.remainingTotal}</b></span>`
+      : `<span class="chip"><span class="ok">All CP covered</span> (based on skills + levels you entered)</span>`);
+
+    el("resultsPills").innerHTML=pills.join("\n");
+  }catch(err){
+    console.error(err);
+    const msg = (err && err.message) ? err.message : String(err);
+    el("resultsPills").innerHTML = `<span class="chip"><span class="bad">Error rendering results:</span> ${escapeHtml(msg)}</span>`;
+  }
+}
+
+function render(){
+  renderSkillRows();
+  renderMaterialsSummary();
+  renderCraftTable();
+  renderResults();
+}
+
+function exportSummary(){
+  const levels=getSkillLevelMap();
+  const mats=getMaterials();
+  const r=compute();
+
+  const lines=[];
+  lines.push("Rising Realms – Crafting Summary");
+  lines.push("CP/Level: 5 (locked)");
+  lines.push("Lab/Tools CP: " + getLabCP());
+  lines.push("");
+  lines.push("Skills:");
+  Object.keys(levels).sort().forEach(k=>lines.push(`- ${k}: L${levels[k]} (CP ${levels[k]*CP_PER_LEVEL})`));
+  lines.push("");
+  lines.push(`Materials: Air ${mats.Air}, Earth ${mats.Earth}, Fire ${mats.Fire}, Water ${mats.Water}, Uncommon ${mats.Uncommon}, Rare ${mats.Rare}`);
+  if(mats.Other) lines.push("Other components: " + mats.Other);
+  lines.push("");
+  lines.push("Craft list:");
+  craftList.forEach(x=>lines.push(`- ${x.n} | ${x.s} | Tier ${x.t ?? "—"} | ${x.cp} CP | Uncommon ${x.u||0} | Rare ${x.ra||0} | ${x.req||""}`));
+  lines.push("");
+  lines.push("Per-skill CP:");
+  Object.keys(r.bySkill).sort().forEach(skill=>{
+    const d=r.bySkill[skill];
+    lines.push(`- ${skill}: Need ${d.need}, Spend Skill ${d.usedSkill} + Lab ${d.usedLab} + Common ${d.usedCommon}, Remaining ${d.remaining}`);
+  });
+  lines.push("");
+  lines.push(`Totals: Recipe CP ${r.totalRecipeCP}, Uncommon req ${r.totalUncommonReq}, Rare req ${r.totalRareReq}`);
+  lines.push("Estimated time: " + fmtTime(r.seconds));
+  if(r.gating.length) lines.push("Skill gating: " + r.gating.join(" | "));
+  if(r.labConflict) lines.push("WARNING: Lab/Tools CP cannot be used with common materials. Common materials were not spent.");
+
+  const text=lines.join("\n");
+  navigator.clipboard.writeText(text).then(()=>alert("Copied summary to clipboard.")).catch(()=>prompt("Copy this:", text));
+}
+
+function wire(){
+  el("addSkillBtn").onclick=addSkillRow;
+  el("addRecipeBtn").onclick=()=>addRecipeById(el("recipeSelect").value);
+  el("clearBtn").onclick=()=>{ craftList=[]; render(); };
+  el("exportBtn").onclick=exportSummary;
+  ["labCP","matAir","matEarth","matFire","matWater","matUncommon","matRare","otherComponents"].forEach(id=>el(id).addEventListener("input", render));
+}
+
+buildFilters();
+refreshRecipeSelect();
+wire();
+render();
+</script>
+  </body>
+</html>
